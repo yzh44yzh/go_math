@@ -10,6 +10,13 @@ import (
 	"strings"
 )
 
+const (
+	Reset = "\033[0m"
+	Red   = "\033[31m"
+	Green = "\033[32m"
+	Blue  = "\033[34m"
+)
+
 type Pair struct {
 	x int
 	y int
@@ -50,11 +57,11 @@ func main() {
 
 		var msg string
 		if ilen == 1 {
-			msg = "There is %d incorrect answer, repeat? y/n: "
+			msg = "%sThere is %d incorrect answer%s, repeat? y/n: "
 		} else {
-			msg = "There are %d incorrect answers, repeat? y/n: "
+			msg = "%sThere are %d incorrect answers%s, repeat? y/n: "
 		}
-		fmt.Printf(msg, ilen)
+		fmt.Printf(msg, Red, ilen, Reset)
 		answer, _ := reader.ReadString('\n')
 		answer = strings.TrimSpace(answer)
 
@@ -64,7 +71,7 @@ func main() {
 			break
 		}
 	}
-	fmt.Println("Done")
+	fmt.Printf("%sDone%s\n", Green, Reset)
 }
 
 func make_pairs(range_from, range_to int) []Pair {
@@ -96,9 +103,9 @@ func learn_pair(pair Pair) bool {
 	int_answer, err := strconv.Atoi(answer)
 
 	if err == nil && int_answer == correct_answer {
-		fmt.Println("Correct")
+		fmt.Printf("%sCorrect%s\n", Green, Reset)
 		return true
 	}
-	fmt.Println("Correct answer is", correct_answer)
+	fmt.Printf("%sCorrect answer is %d%s\n", Red, correct_answer, Reset)
 	return false
 }
