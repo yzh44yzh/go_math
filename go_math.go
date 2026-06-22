@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"math/rand"
+	"strconv"
 )
 
 type Pair struct {
@@ -25,7 +26,7 @@ func main() {
 	flag.IntVar(&limit, "l", 20, "number of questions (shorthand)")
 
 	flag.Parse()
-	fmt.Println("from", range_from, "to", range_to, "limit", limit)
+	fmt.Println("Learn range from", range_from, "to", range_to, "with limit", limit)
 
 	pairs := make_pairs(range_from, range_to)
 	rand.Shuffle(len(pairs), func(i, j int) {
@@ -33,7 +34,9 @@ func main() {
 	})
 	limit = min(len(pairs), limit)
 	pairs = pairs[:limit]
-	fmt.Println("pairs", pairs)
+
+	incorrect_answers := learn_pairs(pairs)
+	fmt.Println("Incorrect answers:", incorrect_answers)
 }
 
 func make_pairs(range_from, range_to int) []Pair {
@@ -44,4 +47,31 @@ func make_pairs(range_from, range_to int) []Pair {
 		}
 	}
 	return pairs
+}
+
+func learn_pairs(pairs []Pair) []Pair {
+	var incorrect []Pair = []Pair{}
+
+	for _, pair := range pairs {
+		if !learn_pair(pair) {
+			incorrect = append(incorrect, pair)
+		}
+	}
+	return incorrect
+}
+
+func learn_pair(pair Pair) bool {
+	correct_answer := pair.x * pair.y
+	fmt.Printf("%d x %d = ", pair.x, pair.y)
+
+	var answer string
+	fmt.Scanln(&answer)
+	int_answer, err := strconv.Atoi(answer)
+
+	if err == nil && int_answer == correct_answer {
+		fmt.Println("Correct")
+		return true
+	}
+	fmt.Println("Correct answer is", correct_answer)
+	return false
 }
