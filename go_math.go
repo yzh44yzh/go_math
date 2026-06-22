@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"math/rand"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -12,6 +14,8 @@ type Pair struct {
 	x int
 	y int
 }
+
+var reader = bufio.NewReader(os.Stdin)
 
 func main() {
 	var range_from int
@@ -51,8 +55,8 @@ func main() {
 			msg = "There are %d incorrect answers, repeat? y/n: "
 		}
 		fmt.Printf(msg, ilen)
-		var answer string
-		fmt.Scanln(&answer)
+		answer, _ := reader.ReadString('\n')
+		answer = strings.TrimSpace(answer)
 
 		if strings.EqualFold(answer, "y") {
 			pairs = incorrect_answers
@@ -87,9 +91,8 @@ func learn_pairs(pairs []Pair) []Pair {
 func learn_pair(pair Pair) bool {
 	correct_answer := pair.x * pair.y
 	fmt.Printf("%d x %d = ", pair.x, pair.y)
-
-	var answer string
-	fmt.Scanln(&answer)
+	answer, _ := reader.ReadString('\n')
+	answer = strings.TrimSpace(answer)
 	int_answer, err := strconv.Atoi(answer)
 
 	if err == nil && int_answer == correct_answer {
