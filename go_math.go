@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strconv"
+	"strings"
 )
 
 type Pair struct {
@@ -35,8 +36,31 @@ func main() {
 	limit = min(len(pairs), limit)
 	pairs = pairs[:limit]
 
-	incorrect_answers := learn_pairs(pairs)
-	fmt.Println("Incorrect answers:", incorrect_answers)
+	for {
+		incorrect_answers := learn_pairs(pairs)
+		ilen := len(incorrect_answers)
+
+		if ilen == 0 {
+			break
+		}
+
+		var msg string
+		if ilen == 1 {
+			msg = "There is %d incorrect answer, repeat? y/n: "
+		} else {
+			msg = "There are %d incorrect answers, repeat? y/n: "
+		}
+		fmt.Printf(msg, ilen)
+		var answer string
+		fmt.Scanln(&answer)
+
+		if strings.EqualFold(answer, "y") {
+			pairs = incorrect_answers
+		} else {
+			break
+		}
+	}
+	fmt.Println("Done")
 }
 
 func make_pairs(range_from, range_to int) []Pair {
