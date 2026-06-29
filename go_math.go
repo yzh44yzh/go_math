@@ -75,7 +75,8 @@ func main() {
 }
 
 func make_pairs(range_from, range_to int) []Pair {
-	pairs := []Pair{}
+	diff := range_to - range_from
+	pairs := make([]Pair, 0, diff*diff)
 	for x := range_from; x <= range_to; x++ {
 		for y := range_from; y <= range_to; y++ {
 			pairs = append(pairs, Pair{x, y})
