@@ -24,19 +24,6 @@ func (s settings) validate() error {
 	return nil
 }
 
-func parseSettings(from, to, count string) (settings, error) {
-	var parsed [3]int
-	for i, value := range []string{from, to, count} {
-		n, err := strconv.Atoi(strings.TrimSpace(value))
-		if err != nil {
-			return settings{}, errors.New("Settings must be whole numbers")
-		}
-		parsed[i] = n
-	}
-	s := settings{parsed[0], parsed[1], parsed[2]}
-	return s, s.validate()
-}
-
 func (s settings) available() int { return (s.to - s.from + 1) * (s.to - s.from + 1) }
 
 type question struct{ x, y int }

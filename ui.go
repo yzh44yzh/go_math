@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"math/rand"
-	"strconv"
 )
 
 // Fyne buttons activate with Space by default. Also support Enter for practice.
@@ -39,26 +39,39 @@ func (focusColumnLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 }
 
 type practiceUI struct {
-	window                  fyne.Window
-	rng                     *rand.Rand
-	practice                *practice
-	from, to, count, answer *widget.Entry
-	errorLabel, capLabel    *widget.Label
-	primary, back           *actionButton
-	confirmation            *dialog.CustomDialog
-	discard                 *actionButton
+	window                         fyne.Window
+	rng                            *rand.Rand
+	practice                       *practice
+	from, to, count                *widget.Slider
+	answer                         *widget.Entry
+	fromLabel, toLabel, countLabel *widget.Label
+	errorLabel, capLabel           *widget.Label
+	primary, back                  *actionButton
+	confirmation                   *dialog.CustomDialog
+	discard                        *actionButton
 }
 
 func newPracticeUI(window fyne.Window, rng *rand.Rand) *practiceUI {
 	u := &practiceUI{window: window, rng: rng}
-	u.from, u.to, u.count = widget.NewEntry(), widget.NewEntry(), widget.NewEntry()
-	u.from.SetText(strconv.Itoa(defaultSettings.from))
-	u.to.SetText(strconv.Itoa(defaultSettings.to))
-	u.count.SetText(strconv.Itoa(defaultSettings.count))
-	for _, entry := range []*widget.Entry{u.from, u.to, u.count} {
-		entry.OnChanged = func(string) { u.updateCap() }
-		entry.OnSubmitted = func(string) { u.start() }
+	u.from, u.to, u.count = widget.NewSlider(1, 9), widget.NewSlider(1, 9), widget.NewSlider(1, 100)
+	u.fromLabel, u.toLabel, u.countLabel = wrappedLabel(""), wrappedLabel(""), wrappedLabel("")
+	u.from.SetValue(float64(defaultSettings.from))
+	u.to.SetValue(float64(defaultSettings.to))
+	u.count.SetValue(float64(defaultSettings.count))
+	u.from.OnChanged = func(value float64) {
+		if value > u.to.Value {
+			u.to.SetValue(value)
+		}
+		u.updateSettings()
 	}
+	u.to.OnChanged = func(value float64) {
+		if value < u.from.Value {
+			u.from.SetValue(value)
+		}
+		u.updateSettings()
+	}
+	u.count.OnChanged = func(float64) { u.updateSettings() }
+	u.updateSettings()
 	u.showSettings()
 	return u
 }
@@ -92,18 +105,29 @@ func (u *practiceUI) showSettings() {
 	u.capLabel = wrappedLabel("")
 	u.primary = newActionButton("Start practice", u.start)
 	u.primary.Importance = widget.HighImportance
-	fields := container.NewVBox(widget.NewLabel("Minimum factor"), u.from, widget.NewLabel("Maximum factor"), u.to, widget.NewLabel("Questions"), u.count)
+	fields := container.NewVBox(u.fromLabel, u.from, u.toLabel, u.to, u.countLabel, u.count)
 	u.updateCap()
 	u.setScreen(container.NewVBox(widget.NewLabelWithStyle("Choose your practice", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), fields, wrappedLabel("Factors 1–9 · Questions 1–100"), u.capLabel, u.errorLabel, u.primary), u.from)
+}
+
+func (u *practiceUI) selectedSettings() settings {
+	return settings{from: int(u.from.Value), to: int(u.to.Value), count: int(u.count.Value)}
+}
+
+func (u *practiceUI) updateSettings() {
+	u.fromLabel.SetText(fmt.Sprintf("Minimum factor: %d", int(u.from.Value)))
+	u.toLabel.SetText(fmt.Sprintf("Maximum factor: %d", int(u.to.Value)))
+	u.countLabel.SetText(fmt.Sprintf("Questions: %d", int(u.count.Value)))
+	u.updateCap()
 }
 
 func (u *practiceUI) updateCap() {
 	if u.capLabel == nil {
 		return
 	}
-	s, err := parseSettings(u.from.Text, u.to.Text, u.count.Text)
+	s := u.selectedSettings()
 	text := ""
-	if err == nil && s.count > s.available() {
+	if s.count > s.available() {
 		if s.available() == 1 {
 			text = "Only 1 pair available. This session will use 1 question."
 		} else {
@@ -122,18 +146,13 @@ func (u *practiceUI) start() {
 	if u.practice != nil {
 		return
 	}
-	s, err := parseSettings(u.from.Text, u.to.Text, u.count.Text)
+	p, err := newPractice(u.selectedSettings(), u.rng)
 	if err != nil {
 		u.errorLabel.SetText(err.Error())
 		u.errorLabel.Show()
 		return
 	}
-	u.practice, err = newPractice(s, u.rng)
-	if err != nil {
-		u.errorLabel.SetText(err.Error())
-		u.errorLabel.Show()
-		return
-	}
+	u.practice = p
 	u.showPractice()
 }
 

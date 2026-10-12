@@ -9,19 +9,18 @@ import (
 
 func TestSettingsValidation(t *testing.T) {
 	cases := []struct {
-		name, from, to, count string
-		valid                 bool
+		name     string
+		settings settings
+		valid    bool
 	}{
-		{"defaults", "1", "9", "20", true}, {"one factor", "5", "5", "100", true},
-		{"whitespace", " 1 ", " 9 ", " 20 ", true}, {"zero factor", "0", "9", "20", false},
-		{"high factor", "1", "10", "20", false}, {"reversed", "9", "1", "20", false},
-		{"negative", "-1", "9", "20", false}, {"zero count", "1", "9", "0", false},
-		{"high count", "1", "9", "101", false}, {"decimal", "1.5", "9", "20", false},
-		{"blank", "", "9", "20", false}, {"overflow", "1", "9", "99999999999999999999999999999", false},
+		{"defaults", defaultSettings, true}, {"one factor", settings{5, 5, 100}, true},
+		{"zero factor", settings{0, 9, 20}, false}, {"high factor", settings{1, 10, 20}, false},
+		{"reversed", settings{9, 1, 20}, false}, {"negative", settings{-1, 9, 20}, false},
+		{"zero count", settings{1, 9, 0}, false}, {"high count", settings{1, 9, 101}, false},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			_, err := parseSettings(c.from, c.to, c.count)
+			err := c.settings.validate()
 			if (err == nil) != c.valid {
 				t.Fatalf("valid=%v, error=%v", c.valid, err)
 			}

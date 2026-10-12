@@ -21,8 +21,10 @@ libraries; it is not a fully static or universally portable Linux binary.
 
 ## Practice
 
-1. Choose minimum and maximum factors from **1–9** and **1–100** questions.
+1. Use the sliders to choose minimum and maximum factors from **1–9** and **1–100** questions.
    Defaults are **1–9** and **20** questions.
+   Labels show the selected values. Moving minimum above maximum raises maximum;
+   lowering maximum below minimum lowers minimum, keeping the range valid.
 2. Start practice. Questions are shuffled without duplicates; `3 × 4` and `4 × 3`
    are separate questions. If the requested count exceeds the available pairs,
    the app explains the cap (at most 81 questions for the full range).
@@ -32,7 +34,9 @@ libraries; it is not a fully static or universally portable Linux binary.
 5. Review round totals. **Retry mistakes** reshuffles only mistakes from the
    preceding round. **New session** returns to settings and retains their values.
 
-Use **Tab** to move between controls. **Back to settings** asks before discarding
+Use **Tab** to move between controls and arrow keys to adjust sliders by 1.
+On settings, **Enter** starts only when **Start practice** is focused.
+**Back to settings** asks before discarding
 an unfinished round; closing the window exits. Settings and results live only in
 memory. The GUI replaces the previous terminal interface and command-line flags.
 

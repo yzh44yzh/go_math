@@ -2,6 +2,17 @@
 
 Status: approved
 
+## Settings Control Revision
+
+The user approved replacing the three settings inputs with integer sliders on
+2026-10-12. Each slider displays its current value in its label. Factors remain
+1–9 and question count 1–100, with existing defaults and count capping.
+Raising minimum past maximum raises maximum; lowering maximum past minimum
+lowers minimum. Arrow keys adjust by 1, Tab traverses the three sliders and Start
+practice, and Enter starts only when Start practice is focused. Model validation
+remains; sliders prevent malformed and out-of-range settings entry in the GUI.
+This revision supersedes references to settings text inputs in earlier decisions.
+
 ## Goal and Scope
 
 Replace the multiplication CLI with a Fyne desktop application using the approved
@@ -32,7 +43,7 @@ From results, retry mistakes starts another round; New session returns to settin
 
 | Area | Required behavior |
 | --- | --- |
-| Settings | Editable minimum and maximum factors from 1–9, minimum ≤ maximum; question count 1–100, default 20; default factor range 1–9. |
+| Settings | Integer sliders for minimum and maximum factors from 1–9, automatically keeping minimum ≤ maximum; question count 1–100, default 20; default factor range 1–9. |
 | Selection | Shuffle distinct ordered pairs, then select without replacement. Cap count at `(maximum - minimum + 1)²` and explain the cap. `3 × 4` and `4 × 3` are separate questions. |
 | Submission | Enter or Check answer submits. Trim whitespace; blank/non-integer input shows Enter a whole number without recording a mistake or advancing. |
 | Feedback | Correct, or the correct multiplication result. Wait for Next/Enter; the final feedback advances to results. |
@@ -43,7 +54,7 @@ From results, retry mistakes starts another round; New session returns to settin
 ## UI and Focus
 
 Use standard Fyne widgets and layouts in one resizable window. Keep a small Go Math
-header and a centered content column. Settings inputs stack vertically. Practice
+header and a centered content column. Settings sliders stack vertically. Practice
 shows question progress, a large centered multiplication question, then answer
 entry. Feedback replaces entry with the submitted answer and result. Results
 display round totals and the available actions.
