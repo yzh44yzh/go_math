@@ -1,7 +1,8 @@
 # Go Math
 
-A Fyne desktop app for practicing multiplication. The first supported environment
-is Ubuntu 26.04, x86-64, KDE on Wayland with XWayland installed.
+A Fyne app for practicing multiplication. Supported targets: Ubuntu 26.04,
+x86-64, KDE on Wayland with XWayland installed, and Android (`arm64-v8a`,
+sideloaded APK).
 
 ## Build and run
 
@@ -45,6 +46,24 @@ answer button; use **Space** to activate a focused digit or editing button.
 an unfinished round; closing the window exits. Settings and results live only in
 memory. The GUI replaces the previous terminal interface and command-line flags.
 
+## Android
+
+Android packaging uses the fyne CLI (matching the pinned library) and a local
+Android SDK with NDK:
+
+```bash
+go install fyne.io/fyne/v2/cmd/fyne@v2.8.1
+make android          # builds Go_Math.apk
+make android-install  # also installs over adb
+```
+
+`ANDROID_HOME` defaults to `~/dev/android-sdk`; override it, `ADB`, `FYNE`, or
+`APK` on the make command line. The device needs USB debugging enabled and, on
+some devices, the package verifier relaxed for `adb install` — see
+[`.scratch/android/spec.md`](.scratch/android/spec.md) for details and known
+limitations. On Android the app is fullscreen, all entry is by touch, and the
+soft keyboard is intentionally never shown.
+
 ## Development checks
 
 ```bash
@@ -69,5 +88,6 @@ discard confirmation, retained settings, resizing, and closing. Headless tests
 cannot certify native focus, graphics, or screen-reader behavior.
 
 The approved specification and decision history live in
-[`.scratch/gui-app/spec.md`](.scratch/gui-app/spec.md).
-Android delivery, saved history, and distributable packages are future work.
+[`.scratch/gui-app/spec.md`](.scratch/gui-app/spec.md); the Android target in
+[`.scratch/android/spec.md`](.scratch/android/spec.md).
+Saved history and distributable packages are future work.

@@ -7,21 +7,27 @@ Go Math is a Fyne multiplication practice app with one root-level `main` package
 answers, and retries; `ui.go` owns the Focus layout, navigation, and keyboard focus.
 `practice_test.go` and `ui_test.go` exercise behavior and UI actions. `go.mod` pins
 Fyne; `go.sum` records dependency checksums. `README.md` documents setup and use.
+`FyneApp.toml` and the generated `Icon.png` feed mobile packaging.
 
 Read `.scratch/gui-app/spec.md` and its linked decisions when changing GUI behavior.
+Read `.scratch/android/spec.md` when changing mobile packaging or touch behavior.
 The reviewed browser prototype is preserved on `codex/prototype/gui-layouts` and
 is a layout reference, not production source.
 
 ## Build, Test, and Development Commands
 
 Use Go 1.24 or newer. Native Ubuntu builds need CGO, a C compiler, and OpenGL/X11
-headers; see README setup. The first target is Ubuntu/KDE through XWayland.
+headers; see README setup. Supported targets: Ubuntu/KDE through XWayland, and
+Android `arm64-v8a` sideloaded to a physical device.
 
 - `make build`: format, vet, and build `go_math` with the `x11` tag.
 - `make run`: launch the native GUI.
 - `make fmt`: format all packages.
 - `make vet`: vet the native X11 build.
 - `make test`: run headless model and UI tests with Fyne's `ci` tag.
+- `make android`: package `Go_Math.apk` with the fyne CLI and a local Android
+  SDK (`ANDROID_HOME ?= ~/dev/android-sdk`).
+- `make android-install`: build the APK and install it over `adb`.
 - `go test -tags x11 ./...`: test with native build dependencies available.
 
 ## Coding Style & Naming Conventions
@@ -29,8 +35,9 @@ headers; see README setup. The first target is Ubuntu/KDE through XWayland.
 Use standard Go formatting with tabs, mixedCaps for unexported identifiers, and
 MixedCaps for exported identifiers. Keep practice logic independent of Fyne
 widgets. Explicit question, feedback, and results states enforce legal actions;
-UI callbacks render results and manage focus. Keep this small app on the UI event
-loop rather than adding background workers.
+UI callbacks render results and manage focus. Route every focus grab through
+`practiceUI.focus` so mobile never pops the soft keyboard. Keep this small app
+on the UI event loop rather than adding background workers.
 
 ## Testing Guidelines
 

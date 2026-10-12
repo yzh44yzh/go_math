@@ -121,7 +121,16 @@ func (u *practiceUI) setScreen(body fyne.CanvasObject, focus fyne.Focusable) {
 	column := container.New(focusColumnLayout{}, body)
 	content := container.NewBorder(container.NewVBox(top, widget.NewSeparator()), nil, nil, nil, container.NewVScroll(container.NewPadded(column)))
 	u.window.SetContent(container.NewPadded(content))
-	u.window.Canvas().Focus(focus)
+	u.focus(focus)
+}
+
+// focus moves keyboard focus for desktop hardware entry. On mobile it would
+// only pop the soft keyboard, which this app never needs: all entry is touch.
+func (u *practiceUI) focus(f fyne.Focusable) {
+	if fyne.CurrentDevice().IsMobile() {
+		return
+	}
+	u.window.Canvas().Focus(f)
 }
 
 func (u *practiceUI) showSettings() {
@@ -321,7 +330,7 @@ func (u *practiceUI) submit() {
 	if err := u.practice.submit(u.answerText); err != nil {
 		u.errorLabel.SetText(err.Error())
 		u.errorLabel.Show()
-		u.window.Canvas().Focus(u.primary)
+		u.focus(u.primary)
 		return
 	}
 	u.showPractice()
@@ -377,9 +386,9 @@ func (u *practiceUI) backToSettings() {
 	), u.window)
 	confirmation.SetOnClosed(func() {
 		u.confirmation = nil
-		u.window.Canvas().Focus(focus)
+		u.focus(focus)
 	})
 	u.confirmation = confirmation
 	confirmation.Show()
-	u.window.Canvas().Focus(keep)
+	u.focus(keep)
 }

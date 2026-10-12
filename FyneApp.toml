@@ -1,0 +1,8 @@
+Website = "https://github.com/yzh44yzh/go_math"
+
+[Details]
+  Icon = "Icon.png"
+  Name = "Go Math"
+  ID = "io.github.yzh44yzh.go_math"
+  Version = "1.0"
+  Build = 4
