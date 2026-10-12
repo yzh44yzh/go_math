@@ -28,14 +28,19 @@ libraries; it is not a fully static or universally portable Linux binary.
 2. Start practice. Questions are shuffled without duplicates; `3 × 4` and `4 × 3`
    are separate questions. If the requested count exceeds the available pairs,
    the app explains the cap (at most 81 questions for the full range).
-3. Enter a whole-number answer, then press **Enter** or **Check answer**.
-   Blank or non-integer input leaves the question active.
+3. Build the answer using digit buttons **0–9**, then press **Enter** or
+   **Check answer**. The display accepts up to two digits; entering another digit
+   after an initial zero replaces that zero. **Clear** removes the answer and
+   **⌫** removes its last digit. An empty answer leaves the question active.
 4. Read the feedback and press **Enter** or **Next** to continue.
 5. Review round totals. **Retry mistakes** reshuffles only mistakes from the
    preceding round. **New session** returns to settings and retains their values.
 
 Use **Tab** to move between controls and arrow keys to adjust sliders by 1.
 On settings, **Enter** starts only when **Start practice** is focused.
+During answer entry, hardware digit keys also work; **Backspace** removes the last
+digit and **Delete** clears the answer. **Enter** submits from the keypad or Check
+answer button; use **Space** to activate a focused digit or editing button.
 **Back to settings** asks before discarding
 an unfinished round; closing the window exits. Settings and results live only in
 memory. The GUI replaces the previous terminal interface and command-line flags.
@@ -59,7 +64,7 @@ sources and cover state transitions, validation, pair selection, retries, and UI
 interaction. No coverage threshold is configured.
 
 For graphical verification, launch on the supported desktop and check Enter/Tab
-focus, invalid settings and answers, cap messages, feedback, repeated retries,
+focus, slider bounds, keypad/keyboard editing, empty answers, cap messages, feedback, repeated retries,
 discard confirmation, retained settings, resizing, and closing. Headless tests
 cannot certify native focus, graphics, or screen-reader behavior.
 

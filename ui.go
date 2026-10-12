@@ -12,7 +12,11 @@ import (
 )
 
 // Fyne buttons activate with Space by default. Also support Enter for practice.
-type actionButton struct{ widget.Button }
+type actionButton struct {
+	widget.Button
+	onRune func(rune)
+	onKey  func(*fyne.KeyEvent) bool
+}
 
 func newActionButton(text string, tapped func()) *actionButton {
 	b := &actionButton{}
@@ -21,11 +25,20 @@ func newActionButton(text string, tapped func()) *actionButton {
 	return b
 }
 func (b *actionButton) TypedKey(event *fyne.KeyEvent) {
+	if b.onKey != nil && b.onKey(event) {
+		return
+	}
 	if event.Name == fyne.KeyReturn || event.Name == fyne.KeyEnter {
 		b.Tapped(nil)
 		return
 	}
 	b.Button.TypedKey(event)
+}
+
+func (b *actionButton) TypedRune(char rune) {
+	if b.onRune != nil {
+		b.onRune(char)
+	}
 }
 
 // Keep a bounded, centered column while allowing it to shrink with the window.
@@ -43,7 +56,10 @@ type practiceUI struct {
 	rng                            *rand.Rand
 	practice                       *practice
 	from, to, count                *widget.Slider
-	answer                         *widget.Entry
+	answer                         *widget.Label
+	answerText                     string
+	digits                         [10]*actionButton
+	clear, erase                   *actionButton
 	fromLabel, toLabel, countLabel *widget.Label
 	errorLabel, capLabel           *widget.Label
 	primary, back                  *actionButton
@@ -53,6 +69,8 @@ type practiceUI struct {
 
 func newPracticeUI(window fyne.Window, rng *rand.Rand) *practiceUI {
 	u := &practiceUI{window: window, rng: rng}
+	window.Canvas().SetOnTypedRune(u.appendDigit)
+	window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) { u.answerKey(event) })
 	u.from, u.to, u.count = widget.NewSlider(1, 9), widget.NewSlider(1, 9), widget.NewSlider(1, 100)
 	u.fromLabel, u.toLabel, u.countLabel = wrappedLabel(""), wrappedLabel(""), wrappedLabel("")
 	u.from.SetValue(float64(defaultSettings.from))
@@ -88,6 +106,15 @@ func (u *practiceUI) setScreen(body fyne.CanvasObject, focus fyne.Focusable) {
 	var right fyne.CanvasObject
 	if u.practice != nil {
 		u.back = newActionButton("Back to settings", u.backToSettings)
+		if u.practice.state == questionPhase {
+			u.back.onRune = u.appendDigit
+			u.back.onKey = func(event *fyne.KeyEvent) bool {
+				if event.Name == fyne.KeyReturn || event.Name == fyne.KeyEnter {
+					return false
+				}
+				return u.answerKey(event)
+			}
+		}
 		right = u.back
 	}
 	top := container.NewBorder(nil, nil, header, right)
@@ -177,17 +204,17 @@ func (u *practiceUI) showPractice() {
 	body := container.NewVBox(widget.NewLabelWithStyle(progressText, fyne.TextAlignCenter, fyne.TextStyle{}), progress, problem)
 	var focus fyne.Focusable
 	if p.state == questionPhase {
-		u.answer = widget.NewEntry()
-		u.answer.PlaceHolder = "Enter a whole number"
-		u.answer.OnSubmitted = func(string) { u.submit() }
+		u.answerText = ""
+		u.answer = widget.NewLabelWithStyle("Your answer: —", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
 		u.errorLabel = wrappedLabel("")
 		u.errorLabel.Importance = widget.DangerImportance
 		u.errorLabel.Hide()
 		u.primary = newActionButton("Check answer", u.submit)
-		body.Add(widget.NewLabel("Your answer"))
+		u.primary.onRune, u.primary.onKey = u.appendDigit, u.answerKey
 		body.Add(u.answer)
+		body.Add(u.answerKeypad())
 		body.Add(u.errorLabel)
-		focus = u.answer
+		focus = u.primary
 	} else {
 		feedback := "Correct"
 		if p.answer != q.product() {
@@ -211,14 +238,90 @@ func (u *practiceUI) showPractice() {
 	u.setScreen(body, focus)
 }
 
-func (u *practiceUI) submit() {
-	if u.practice == nil || u.practice.state != questionPhase {
+func (u *practiceUI) answerKeypad() fyne.CanvasObject {
+	keys := container.NewGridWithColumns(3)
+	for digit := 1; digit <= 9; digit++ {
+		char := rune('0' + digit)
+		u.digits[digit] = u.answerButton(string(char), func() { u.appendDigit(char) })
+		keys.Add(u.digits[digit])
+	}
+	u.clear = u.answerButton("Clear", func() { u.editAnswer(false) })
+	u.digits[0] = u.answerButton("0", func() { u.appendDigit('0') })
+	u.erase = u.answerButton("⌫", func() { u.editAnswer(true) })
+	keys.Add(u.clear)
+	keys.Add(u.digits[0])
+	keys.Add(u.erase)
+	return keys
+}
+
+func (u *practiceUI) answerButton(text string, tapped func()) *actionButton {
+	b := newActionButton(text, tapped)
+	b.onRune, b.onKey = u.appendDigit, u.answerKey
+	return b
+}
+
+func (u *practiceUI) enteringAnswer() bool {
+	return u.practice != nil && u.practice.state == questionPhase && u.confirmation == nil
+}
+
+func (u *practiceUI) appendDigit(char rune) {
+	if !u.enteringAnswer() || char < '0' || char > '9' {
 		return
 	}
-	if err := u.practice.submit(u.answer.Text); err != nil {
+	if u.answerText == "0" {
+		u.answerText = string(char)
+	} else if len(u.answerText) < 2 {
+		u.answerText += string(char)
+	}
+	u.updateAnswer()
+}
+
+func (u *practiceUI) editAnswer(backspace bool) {
+	if !u.enteringAnswer() {
+		return
+	}
+	if backspace && len(u.answerText) > 0 {
+		u.answerText = u.answerText[:len(u.answerText)-1]
+	} else if !backspace {
+		u.answerText = ""
+	}
+	u.updateAnswer()
+}
+
+func (u *practiceUI) updateAnswer() {
+	text := u.answerText
+	if text == "" {
+		text = "—"
+	}
+	u.answer.SetText("Your answer: " + text)
+	u.errorLabel.Hide()
+}
+
+func (u *practiceUI) answerKey(event *fyne.KeyEvent) bool {
+	if !u.enteringAnswer() {
+		return false
+	}
+	switch event.Name {
+	case fyne.KeyBackspace:
+		u.editAnswer(true)
+	case fyne.KeyDelete:
+		u.editAnswer(false)
+	case fyne.KeyReturn, fyne.KeyEnter:
+		u.submit()
+	default:
+		return false
+	}
+	return true
+}
+
+func (u *practiceUI) submit() {
+	if !u.enteringAnswer() {
+		return
+	}
+	if err := u.practice.submit(u.answerText); err != nil {
 		u.errorLabel.SetText(err.Error())
 		u.errorLabel.Show()
-		u.window.Canvas().Focus(u.answer)
+		u.window.Canvas().Focus(u.primary)
 		return
 	}
 	u.showPractice()
@@ -262,9 +365,6 @@ func (u *practiceUI) backToSettings() {
 		return
 	}
 	var focus fyne.Focusable = u.primary
-	if u.practice.state == questionPhase {
-		focus = u.answer
-	}
 	var confirmation *dialog.CustomDialog
 	keep := newActionButton("Keep practicing", func() { confirmation.Hide() })
 	u.discard = newActionButton("Back to settings", func() {

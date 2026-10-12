@@ -29,15 +29,15 @@ func TestUIPracticeAndRetry(t *testing.T) {
 		t.Fatalf("missing cap: %q", u.capLabel.Text)
 	}
 	test.Tap(u.primary)
-	if u.practice == nil || len(u.practice.pairs) != 1 || u.window.Canvas().Focused() != u.answer {
+	if u.practice == nil || len(u.practice.pairs) != 1 || u.window.Canvas().Focused() != u.primary {
 		t.Fatal("practice did not start focused on answer")
 	}
 	test.Tap(u.primary)
 	if u.errorLabel.Text != "Enter a whole number" || u.practice.state != questionPhase {
 		t.Fatal("blank input did not preserve question")
 	}
-	u.answer.SetText("3")
-	u.answer.TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
+	test.Tap(u.digits[3])
+	u.primary.TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
 	if u.practice.state != feedbackPhase || len(u.practice.mistakes) != 1 || u.window.Canvas().Focused() != u.primary {
 		t.Fatal("answer did not show focused feedback")
 	}
@@ -49,7 +49,7 @@ func TestUIPracticeAndRetry(t *testing.T) {
 	if u.practice.round != 1 || u.practice.state != questionPhase {
 		t.Fatal("retry action failed")
 	}
-	test.Type(u.answer, "4")
+	test.Type(u.primary, "4")
 	test.Tap(u.primary)
 	test.Tap(u.primary)
 	if u.primary.Text != "New session" || u.practice.correct != 1 {
@@ -75,14 +75,14 @@ func TestUISettingsAndDiscard(t *testing.T) {
 		t.Fatal("full range cap not explained")
 	}
 	test.Tap(u.primary)
-	u.answer.SetText("123")
+	test.Type(u.primary, "12")
 	before := u.practice
 	test.Tap(u.back)
 	if u.confirmation == nil {
 		t.Fatal("discard confirmation not shown")
 	}
 	u.window.Canvas().Focused().TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
-	if u.practice != before || u.answer.Text != "123" || u.window.Canvas().Focused() != u.answer {
+	if u.practice != before || u.answerText != "12" || u.window.Canvas().Focused() != u.primary {
 		t.Fatal("cancelled navigation changed progress/focus")
 	}
 	test.Tap(u.back)
@@ -147,7 +147,7 @@ func TestUIManualAdvancementAndFocus(t *testing.T) {
 	u.count.SetValue(2)
 	test.Tap(u.primary)
 	q := u.practice.current()
-	u.answer.SetText(strconv.Itoa(q.product()))
+	test.Type(u.primary, strconv.Itoa(q.product()))
 	check := u.primary
 	test.Tap(check)
 	test.Tap(check)
@@ -158,16 +158,17 @@ func TestUIManualAdvancementAndFocus(t *testing.T) {
 		t.Fatal("wrong feedback action")
 	}
 	test.Tap(u.primary)
-	if u.practice.index != 1 || u.practice.state != questionPhase || u.window.Canvas().Focused() != u.answer {
+	if u.practice.index != 1 || u.practice.state != questionPhase || u.window.Canvas().Focused() != u.primary {
 		t.Fatal("next question did not restore answer focus")
 	}
+	u.window.Canvas().Focus(u.digits[1])
 	u.window.Canvas().FocusNext()
-	if u.window.Canvas().Focused() != u.primary {
-		t.Fatal("Tab traversal did not reach Check answer")
+	if u.window.Canvas().Focused() != u.digits[2] {
+		t.Fatal("Tab traversal did not reach the next digit")
 	}
 	u.window.Canvas().FocusPrevious()
-	if u.window.Canvas().Focused() != u.answer {
-		t.Fatal("reverse Tab traversal did not restore answer entry")
+	if u.window.Canvas().Focused() != u.digits[1] {
+		t.Fatal("reverse Tab traversal did not restore the first digit")
 	}
 }
 
@@ -185,6 +186,80 @@ func TestActionButtonKeyboard(t *testing.T) {
 		if calls != 1 {
 			t.Fatal("disabled button activated")
 		}
+	}
+}
+
+func TestAnswerKeypadEditing(t *testing.T) {
+	u := setupUI(t)
+	u.from.SetValue(7)
+	u.to.SetValue(8)
+	u.count.SetValue(1)
+	test.Tap(u.primary)
+	test.Tap(u.digits[0])
+	test.Tap(u.digits[0])
+	if u.answerText != "0" {
+		t.Fatal("leading zero was duplicated")
+	}
+	test.Tap(u.digits[5])
+	test.Tap(u.digits[6])
+	test.Tap(u.digits[7])
+	if u.answerText != "56" || u.answer.Text != "Your answer: 56" || u.practice.state != questionPhase {
+		t.Fatal("keypad did not replace the initial zero, limit length, or wait for submission")
+	}
+	test.Tap(u.erase)
+	if u.answerText != "5" {
+		t.Fatal("backspace did not remove the final digit")
+	}
+	test.Tap(u.clear)
+	if u.answerText != "" || u.answer.Text != "Your answer: —" {
+		t.Fatal("Clear did not reset the display")
+	}
+	test.Tap(u.erase)
+	if u.answerText != "" {
+		t.Fatal("backspace on an empty answer changed it")
+	}
+}
+
+func TestAnswerKeyboardRouting(t *testing.T) {
+	u := setupUI(t)
+	u.count.SetValue(2)
+	test.Tap(u.primary)
+	test.Tap(u.digits[1])
+	test.Type(u.digits[1], "2x-3")
+	if u.answerText != "12" {
+		t.Fatal("focused keypad button did not route digits, ignore non-digits, or limit length")
+	}
+	u.digits[1].TypedKey(&fyne.KeyEvent{Name: fyne.KeyBackspace})
+	if u.answerText != "1" {
+		t.Fatal("keyboard Backspace failed")
+	}
+	u.digits[1].TypedKey(&fyne.KeyEvent{Name: fyne.KeyDelete})
+	if u.answerText != "" {
+		t.Fatal("keyboard Delete failed")
+	}
+	u.window.Canvas().Unfocus()
+	u.window.Canvas().OnTypedRune()('9')
+	if u.answerText != "9" {
+		t.Fatal("unfocused canvas did not route numeric input")
+	}
+	u.digits[9].TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
+	if u.practice.state != feedbackPhase || u.practice.answer != 9 {
+		t.Fatal("Enter on a digit button must submit rather than append that digit")
+	}
+	u.window.Canvas().OnTypedRune()('7')
+	if u.answerText != "9" {
+		t.Fatal("numeric keys changed the answer during feedback")
+	}
+	test.Tap(u.primary)
+	if u.answerText != "" || u.answer.Text != "Your answer: —" {
+		t.Fatal("next question did not reset answer entry")
+	}
+	test.Type(u.primary, "4")
+	test.Tap(u.back)
+	u.window.Canvas().OnTypedRune()('5')
+	u.window.Canvas().OnTypedKey()(&fyne.KeyEvent{Name: fyne.KeyReturn})
+	if u.answerText != "4" || u.practice.state != questionPhase {
+		t.Fatal("answer entry remained active behind the confirmation dialog")
 	}
 }
 

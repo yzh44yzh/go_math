@@ -2,6 +2,23 @@
 
 Status: approved
 
+## Answer Control Revision
+
+On 2026-10-12 the user approved replacing the answer text input with digit buttons
+and a read-only answer display. Arrange rows as `1 2 3`, `4 5 6`, `7 8 9`, then
+`Clear 0 ⌫`. Digit presses append without submitting, up to two digits; an initial
+zero is replaced by the next digit. Clear removes everything; ⌫ removes the last
+digit. Empty submission keeps the current question active without a mistake.
+
+Hardware digit keys, Backspace, and Delete perform the same entry/editing actions.
+Enter submits while a keypad or Check answer control is focused. Tab traverses
+controls; Space activates a focused digit or editing button. Focus Check answer
+on each new question to support direct hardware digit entry. Answer entry is
+inactive during feedback, results, settings, and navigation confirmation.
+Back to settings retains its navigation action when explicitly activated.
+This revision supersedes references to answer text inputs and their focus rules
+in earlier decisions.
+
 ## Settings Control Revision
 
 The user approved replacing the three settings inputs with integer sliders on
@@ -45,7 +62,7 @@ From results, retry mistakes starts another round; New session returns to settin
 | --- | --- |
 | Settings | Integer sliders for minimum and maximum factors from 1–9, automatically keeping minimum ≤ maximum; question count 1–100, default 20; default factor range 1–9. |
 | Selection | Shuffle distinct ordered pairs, then select without replacement. Cap count at `(maximum - minimum + 1)²` and explain the cap. `3 × 4` and `4 × 3` are separate questions. |
-| Submission | Enter or Check answer submits. Trim whitespace; blank/non-integer input shows Enter a whole number without recording a mistake or advancing. |
+| Submission | Buttons/keyboard compose up to two digits in a read-only display. Enter or Check answer submits; an empty answer shows Enter a whole number without recording a mistake or advancing. |
 | Feedback | Correct, or the correct multiplication result. Wait for Next/Enter; the final feedback advances to results. |
 | Results | Correct and incorrect counts for the completed round; offer Retry mistakes only when mistakes remain. |
 | Retry | Only mistakes from the immediately preceding round, reshuffled for every round. A random shuffle may reproduce the previous order. |
@@ -55,11 +72,11 @@ From results, retry mistakes starts another round; New session returns to settin
 
 Use standard Fyne widgets and layouts in one resizable window. Keep a small Go Math
 header and a centered content column. Settings sliders stack vertically. Practice
-shows question progress, a large centered multiplication question, then answer
-entry. Feedback replaces entry with the submitted answer and result. Results
+shows question progress, a large centered multiplication question, then a read-only
+answer display and keypad. Feedback replaces the keypad with the submitted answer and result. Results
 display round totals and the available actions.
 
-Focus answer entry on each question, Next/See results after feedback, and the
+Focus Check answer on each question, Next/See results after feedback, and the
 primary results action. Support Tab navigation and Enter activation. Keep controls
 visible and layouts usable when resized; use text as well as any feedback color.
 
