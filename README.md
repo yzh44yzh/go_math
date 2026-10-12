@@ -1,48 +1,64 @@
 # Go Math
 
-CLI utility to learn multiplication.
+A Fyne desktop app for practicing multiplication. The first supported environment
+is Ubuntu 26.04, x86-64, KDE on Wayland with XWayland installed.
 
-```
-$ ./go_math --help
-Usage of ./go_math:
-  -f int
-    	range left border (shorthand) (default 1)
-  -from int
-    	range left border (default 1)
-  -t int
-    	range right border (shorthand) (default 9)
-  -to int
-    	range right border (default 9)
-  -l int
-    	number of questions (shorthand) (default 20)
-  -limit int
-    	number of questions (default 20)
+## Build and run
+
+Use Go 1.24 or newer. Fyne 2.8.1 is pinned in `go.mod`; native builds require CGO,
+a C compiler, and OpenGL/X11 development headers. On Ubuntu:
+
+```bash
+sudo apt install build-essential pkg-config libgl1-mesa-dev xorg-dev
+make build
+./go_math
 ```
 
-Example:
+Or use `make run` to build and launch directly. Both commands use `-tags x11`,
+matching the supported XWayland target and avoiding native Wayland build headers.
+The executable needs an active graphical session and working OpenGL/X11 runtime
+libraries; it is not a fully static or universally portable Linux binary.
+
+## Practice
+
+1. Choose minimum and maximum factors from **1–9** and **1–100** questions.
+   Defaults are **1–9** and **20** questions.
+2. Start practice. Questions are shuffled without duplicates; `3 × 4` and `4 × 3`
+   are separate questions. If the requested count exceeds the available pairs,
+   the app explains the cap (at most 81 questions for the full range).
+3. Enter a whole-number answer, then press **Enter** or **Check answer**.
+   Blank or non-integer input leaves the question active.
+4. Read the feedback and press **Enter** or **Next** to continue.
+5. Review round totals. **Retry mistakes** reshuffles only mistakes from the
+   preceding round. **New session** returns to settings and retains their values.
+
+Use **Tab** to move between controls. **Back to settings** asks before discarding
+an unfinished round; closing the window exits. Settings and results live only in
+memory. The GUI replaces the previous terminal interface and command-line flags.
+
+## Development checks
+
+```bash
+make fmt        # Standard Go formatting
+make vet        # Static checks for the native X11 build
+make test       # Model and Fyne UI tests using the headless ci driver
+make build      # Format, vet, and build the native executable
 ```
-$ ./go_math --from=5 --to=8 --limit=8 
-Learn range from 5 to 8 with limit 8
-8 x 7 = 56
-Correct
-5 x 7 = 35
-Correct
-6 x 6 = 36
-Correct
-7 x 7 = ?
-Correct answer is 49
-7 x 6 = 43
-Correct answer is 42
-6 x 7 = 42
-Correct
-5 x 5 = 25
-Correct
-5 x 6 = 30
-Correct
-There are 2 incorrect answers, repeat? y/n: y
-7 x 7 = 49
-Correct
-7 x 6 = 42
-Correct
-Done
-```
+
+`go test -tags ci ./...` does not require a display or native graphics headers.
+Use the `x11` tag for ordinary native Go commands, such as
+`go test -tags x11 ./...` and `go vet -tags x11 ./...`.
+
+Source is one `main` package: `go_math.go` starts the app, `practice.go` owns practice
+state, and `ui.go` implements the centered Focus layout. Tests use seeded random
+sources and cover state transitions, validation, pair selection, retries, and UI
+interaction. No coverage threshold is configured.
+
+For graphical verification, launch on the supported desktop and check Enter/Tab
+focus, invalid settings and answers, cap messages, feedback, repeated retries,
+discard confirmation, retained settings, resizing, and closing. Headless tests
+cannot certify native focus, graphics, or screen-reader behavior.
+
+The approved specification and decision history live in
+[`.scratch/gui-app/spec.md`](.scratch/gui-app/spec.md).
+Android delivery, saved history, and distributable packages are future work.

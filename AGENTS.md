@@ -2,32 +2,50 @@
 
 ## Project Structure & Module Organization
 
-This repository contains a small Go CLI for practicing multiplication. `go_math.go` holds the `main` package, flag parsing, question generation, terminal interaction, and retry loop. `go.mod` declares module `go_math` and Go 1.24.0. `Makefile` provides formatting, vetting, and build targets; `README.md` documents flags and an example session. There are currently no separate test or asset directories and no external dependencies.
+Go Math is a Fyne multiplication practice app with one root-level `main` package.
+`go_math.go` starts the window; `practice.go` owns validation, question selection,
+answers, and retries; `ui.go` owns the Focus layout, navigation, and keyboard focus.
+`practice_test.go` and `ui_test.go` exercise behavior and UI actions. `go.mod` pins
+Fyne; `go.sum` records dependency checksums. `README.md` documents setup and use.
 
-Keep related changes in the existing package. If the source grows, split focused responsibilities into additional root-level `.go` files.
+Read `.scratch/gui-app/spec.md` and its linked decisions when changing GUI behavior.
+The reviewed browser prototype is preserved on `codex/prototype/gui-layouts` and
+is a layout reference, not production source.
 
 ## Build, Test, and Development Commands
 
-Use a Go toolchain compatible with `go.mod`.
+Use Go 1.24 or newer. Native Ubuntu builds need CGO, a C compiler, and OpenGL/X11
+headers; see README setup. The first target is Ubuntu/KDE through XWayland.
 
-- `make build`: runs formatting and vetting, then builds the `go_math` executable.
-- `make fmt`: formats all Go packages with `go fmt ./...`.
-- `make vet`: runs static checks with `go vet ./...`.
-- `go test ./...`: runs all tests; currently there are no test files.
-- `go run . --from=5 --to=8 --limit=8`: starts an interactive practice session without a separate build step.
-- `./go_math --help`: lists flags after building.
+- `make build`: format, vet, and build `go_math` with the `x11` tag.
+- `make run`: launch the native GUI.
+- `make fmt`: format all packages.
+- `make vet`: vet the native X11 build.
+- `make test`: run headless model and UI tests with Fyne's `ci` tag.
+- `go test -tags x11 ./...`: test with native build dependencies available.
 
 ## Coding Style & Naming Conventions
 
-Use Go's standard formatting and tab indentation; run `make fmt` before submitting changes. Use mixedCaps for unexported functions and local variables, such as `makePairs` and `incorrectAnswers`, and MixedCaps for exported identifiers, such as `Pair`. Use descriptive names and keep functions focused. Preserve the long and shorthand CLI flags together when changing options.
+Use standard Go formatting with tabs, mixedCaps for unexported identifiers, and
+MixedCaps for exported identifiers. Keep practice logic independent of Fyne
+widgets. Explicit question, feedback, and results states enforce legal actions;
+UI callbacks render results and manage focus. Keep this small app on the UI event
+loop rather than adding background workers.
 
 ## Testing Guidelines
 
-Add tests using Go's standard `testing` package in root-level `*_test.go` files, with functions named `TestXxx`. Prefer table-driven cases for question generation and input parsing. Keep tests deterministic despite shuffled question order. No coverage threshold is configured. For terminal changes, manually check correct and incorrect answers, whitespace handling, and the repeat prompt.
+Use Go's `testing` package in `*_test.go` files with `TestXxx` functions. Use table-driven
+validation cases and seeded randomness. Verify pair/permutation invariants rather
+than expecting every shuffle to change order. Fyne test helpers cover meaningful
+UI actions; keep native keyboard, resizing, and launch checks separate. There is
+no coverage threshold. Run `make test`, `make vet`, and `make build` after changes.
 
 ## Commit & Pull Request Guidelines
 
-Git history uses short, lowercase descriptions such as `colored output` and `better input handling`; follow that concise style. Keep commits focused. Pull requests should explain the behavior change and list validation commands and results. Link relevant issues when available, include terminal transcripts for output changes, and update `README.md` when flags or usage change.
+Use short, lowercase commit descriptions, following history such as `colored output`.
+Keep commits focused. Describe behavior changes and verification results in PRs;
+link relevant issues and include screenshots for UI changes. Update README and
+this guide when commands, dependencies, or source organization change.
 
 ## Agent skills
 
