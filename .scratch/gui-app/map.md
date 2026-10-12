@@ -1,6 +1,7 @@
 # Plan the Linux multiplication GUI
 
 Label: wayfinder:map
+Status: resolved
 
 ## Destination
 
@@ -25,12 +26,22 @@ with a Linux desktop application, including a selected Go UI library and validat
 
 - [Compare Go GUI libraries for Linux multiplication practice](issues/01-research-go-gui-libraries.md): cited research
   favors Fyne provisionally; Gio and Wails tradeoffs and tagged Go requirements
-  are recorded, while library selection and platform/build proof remain open.
+  are recorded; platform/build proof remains open.
+- [Select the Go UI library](issues/02-select-gui-library.md): Fyne with standard
+  widgets and layouts; Linux first, with Android considered for future portability.
+- [Define question feedback and retry behavior](issues/03-define-practice-interactions.md):
+  manual feedback advancement, validated settings, and randomized mistake-only retry rounds.
+- [Review the GUI screen layout](issues/04-design-screen-layout.md): Focus layout
+  selected; centered single-column screens and keyboard focus rules recorded.
+- [Define Linux delivery and acceptance checks](issues/05-define-linux-delivery.md):
+  local executable for Ubuntu 26.04/KDE through XWayland, with behavior and graphical checks.
+- [Plan the practice model and implementation handoff](issues/06-plan-session-model-and-tests.md):
+  one package with separate practice/UI files, deterministic behavior tests, and
+  an ordered handoff in [the agreed specification](spec.md).
 
 ## Not yet specified
 
-- Screen layout and visual style need refinement after library selection.
-- Implementation sequencing depends on the session model and packaging decisions.
+<!-- No additional uncharted decisions currently; remaining questions have tickets. -->
 
 ## Out of scope
 
