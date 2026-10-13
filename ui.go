@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"image/color"
 	"math/rand"
 
 	"fyne.io/fyne/v2"
@@ -10,6 +11,51 @@ import (
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
+
+// Keep text readable on both desktop and mobile without shrinking for rotation.
+type practiceTheme struct{ fyne.Theme }
+
+func (t practiceTheme) Size(name fyne.ThemeSizeName) float32 {
+	switch name {
+	case theme.SizeNameText, theme.SizeNameCaptionText:
+		return 20
+	case theme.SizeNameHeadingText:
+		return 36
+	case theme.SizeNameSubHeadingText:
+		return 24
+	}
+	return t.Theme.Size(name)
+}
+
+type progressTheme struct{ fyne.Theme }
+
+func (t progressTheme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
+	if name == theme.ColorNamePrimary {
+		if variant == theme.VariantLight {
+			return color.NRGBA{R: 237, G: 139, B: 35, A: 255}
+		}
+		return color.NRGBA{R: 168, G: 82, B: 10, A: 255}
+	}
+	if name == theme.ColorNameForegroundOnPrimary {
+		if variant == theme.VariantLight {
+			return color.NRGBA{R: 51, G: 32, B: 10, A: 255}
+		}
+		return color.White
+	}
+	return t.Theme.Color(name, variant)
+}
+
+// Reserve two lines for validation or feedback so the action never jumps.
+type messageSlotLayout struct{}
+
+func (messageSlotLayout) MinSize([]fyne.CanvasObject) fyne.Size {
+	return fyne.NewSize(0, 64)
+}
+
+func (messageSlotLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
+	objects[0].Move(fyne.NewPos(0, 0))
+	objects[0].Resize(size)
+}
 
 // Fyne buttons activate with Space by default. Also support Enter for practice.
 type actionButton struct {
@@ -23,6 +69,12 @@ func newActionButton(text string, tapped func()) *actionButton {
 	b.Text, b.OnTapped = text, tapped
 	b.ExtendBaseWidget(b)
 	return b
+}
+
+func (b *actionButton) MinSize() fyne.Size {
+	size := b.Button.MinSize()
+	size.Height = max(size.Height, 56)
+	return size
 }
 func (b *actionButton) TypedKey(event *fyne.KeyEvent) {
 	if b.onKey != nil && b.onKey(event) {
@@ -53,6 +105,7 @@ func (focusColumnLayout) Layout(objects []fyne.CanvasObject, size fyne.Size) {
 
 type practiceUI struct {
 	window                         fyne.Window
+	scroll                         *container.Scroll
 	rng                            *rand.Rand
 	practice                       *practice
 	from, to, count                *widget.Slider
@@ -68,6 +121,7 @@ type practiceUI struct {
 }
 
 func newPracticeUI(window fyne.Window, rng *rand.Rand) *practiceUI {
+	fyne.CurrentApp().Settings().SetTheme(practiceTheme{theme.DefaultTheme()})
 	u := &practiceUI{window: window, rng: rng}
 	window.Canvas().SetOnTypedRune(u.appendDigit)
 	window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) { u.answerKey(event) })
@@ -105,7 +159,7 @@ func (u *practiceUI) setScreen(body fyne.CanvasObject, focus fyne.Focusable) {
 	u.back = nil
 	var right fyne.CanvasObject
 	if u.practice != nil {
-		u.back = newActionButton("Back to settings", u.backToSettings)
+		u.back = newActionButton("New Session", u.backToSettings)
 		if u.practice.state == questionPhase {
 			u.back.onRune = u.appendDigit
 			u.back.onKey = func(event *fyne.KeyEvent) bool {
@@ -119,7 +173,8 @@ func (u *practiceUI) setScreen(body fyne.CanvasObject, focus fyne.Focusable) {
 	}
 	top := container.NewBorder(nil, nil, header, right)
 	column := container.New(focusColumnLayout{}, body)
-	content := container.NewBorder(container.NewVBox(top, widget.NewSeparator()), nil, nil, nil, container.NewVScroll(container.NewPadded(column)))
+	u.scroll = container.NewVScroll(container.NewPadded(column))
+	content := container.NewBorder(container.NewVBox(top, widget.NewSeparator()), nil, nil, nil, u.scroll)
 	u.window.SetContent(container.NewPadded(content))
 	u.focus(focus)
 }
@@ -210,34 +265,46 @@ func (u *practiceUI) showPractice() {
 	}
 	progress.SetValue(float64(completed) / float64(len(p.pairs)))
 	problem := widget.NewRichText(&widget.TextSegment{Text: fmt.Sprintf("%d × %d = ?", q.x, q.y), Style: widget.RichTextStyle{Alignment: fyne.TextAlignCenter, SizeName: theme.SizeNameHeadingText, TextStyle: fyne.TextStyle{Bold: true}}})
-	body := container.NewVBox(widget.NewLabelWithStyle(progressText, fyne.TextAlignCenter, fyne.TextStyle{}), progress, problem)
+	body := container.NewVBox(widget.NewLabelWithStyle(progressText, fyne.TextAlignCenter, fyne.TextStyle{}),
+		container.NewThemeOverride(progress, progressTheme{fyne.CurrentApp().Settings().Theme()}), problem)
+	u.answer = widget.NewLabelWithStyle("Your answer: —", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
+	u.errorLabel = wrappedLabel("")
+	u.errorLabel.Importance = widget.DangerImportance
+	body.Add(u.answer)
+	body.Add(u.answerKeypad())
+	body.Add(container.New(messageSlotLayout{}, u.errorLabel))
 	var focus fyne.Focusable
 	if p.state == questionPhase {
 		u.answerText = ""
-		u.answer = widget.NewLabelWithStyle("Your answer: —", fyne.TextAlignCenter, fyne.TextStyle{Bold: true})
-		u.errorLabel = wrappedLabel("")
-		u.errorLabel.Importance = widget.DangerImportance
-		u.errorLabel.Hide()
 		u.primary = newActionButton("Check answer", u.submit)
 		u.primary.onRune, u.primary.onKey = u.appendDigit, u.answerKey
-		body.Add(u.answer)
-		body.Add(u.answerKeypad())
-		body.Add(u.errorLabel)
 		focus = u.primary
 	} else {
 		feedback := "Correct"
 		if p.answer != q.product() {
 			feedback = fmt.Sprintf("Correct answer: %d × %d = %d", q.x, q.y, q.product())
 		}
-		body.Add(wrappedLabel(fmt.Sprintf("Your answer: %d", p.answer)))
-		body.Add(wrappedLabel(feedback))
+		u.answer.SetText(fmt.Sprintf("Your answer: %d", p.answer))
+		u.errorLabel.SetText(feedback)
+		if p.answer == q.product() {
+			u.errorLabel.Importance = widget.SuccessImportance
+		}
+		for _, digit := range u.digits {
+			digit.Disable()
+		}
+		u.clear.Disable()
+		u.erase.Disable()
 		nextText := "Next"
 		if p.index == len(p.pairs)-1 {
 			nextText = "See results"
 		}
 		u.primary = newActionButton(nextText, func() {
+			offset := u.scroll.Offset
 			if p.next() {
 				u.showPractice()
+				if p.state == questionPhase {
+					u.scroll.ScrollToOffset(offset)
+				}
 			}
 		})
 		focus = u.primary
@@ -303,7 +370,7 @@ func (u *practiceUI) updateAnswer() {
 		text = "—"
 	}
 	u.answer.SetText("Your answer: " + text)
-	u.errorLabel.Hide()
+	u.errorLabel.SetText("")
 }
 
 func (u *practiceUI) answerKey(event *fyne.KeyEvent) bool {
@@ -333,7 +400,9 @@ func (u *practiceUI) submit() {
 		u.focus(u.primary)
 		return
 	}
+	offset := u.scroll.Offset
 	u.showPractice()
+	u.scroll.ScrollToOffset(offset)
 }
 
 func (u *practiceUI) showResults() {
@@ -342,7 +411,7 @@ func (u *practiceUI) showResults() {
 	if len(p.mistakes) == 0 {
 		title = "All correct!"
 	}
-	newSession := newActionButton("New session", u.showSettings)
+	newSession := newActionButton("New Session", u.showSettings)
 	u.primary = newSession
 	actions := container.NewVBox()
 	if len(p.mistakes) > 0 {
@@ -376,7 +445,7 @@ func (u *practiceUI) backToSettings() {
 	var focus fyne.Focusable = u.primary
 	var confirmation *dialog.CustomDialog
 	keep := newActionButton("Keep practicing", func() { confirmation.Hide() })
-	u.discard = newActionButton("Back to settings", func() {
+	u.discard = newActionButton("New Session", func() {
 		confirmation.Hide()
 		u.showSettings()
 	})

@@ -52,12 +52,55 @@ func TestUIPracticeAndRetry(t *testing.T) {
 	test.Type(u.primary, "4")
 	test.Tap(u.primary)
 	test.Tap(u.primary)
-	if u.primary.Text != "New session" || u.practice.correct != 1 {
+	if u.primary.Text != "New Session" || u.practice.correct != 1 {
 		t.Fatal("correct retry did not finish")
 	}
 	test.Tap(u.primary)
 	if u.practice != nil || u.from.Value != 2 || u.count.Value != 20 {
 		t.Fatal("new session did not retain settings")
+	}
+}
+
+func TestPracticeActionPositionAndDisabledFeedbackKeypad(t *testing.T) {
+	u := setupUI(t)
+	u.count.SetValue(2)
+	test.Tap(u.primary)
+	position, size := u.primary.Position(), u.primary.Size()
+	u.scroll.ScrollToBottom()
+	offset := u.scroll.Offset
+	assertPosition := func() {
+		t.Helper()
+		if u.primary.Position() != position || u.primary.Size() != size {
+			t.Fatalf("action moved: position %v, size %v; want %v, %v", u.primary.Position(), u.primary.Size(), position, size)
+		}
+		if u.scroll.Offset != offset {
+			t.Fatalf("practice scroll moved: got %v, want %v", u.scroll.Offset, offset)
+		}
+	}
+	test.Tap(u.primary)
+	assertPosition()
+	test.Tap(u.digits[0])
+	test.Tap(u.primary)
+	assertPosition()
+	for _, digit := range u.digits {
+		if !digit.Visible() || !digit.Disabled() {
+			t.Fatal("feedback keypad must stay visible and disabled")
+		}
+		test.Tap(digit)
+	}
+	if u.answerText != "0" || !u.clear.Disabled() || !u.erase.Disabled() {
+		t.Fatal("feedback allowed answer editing")
+	}
+	test.Tap(u.primary)
+	assertPosition()
+	if u.digits[0].Disabled() {
+		t.Fatal("next question did not enable keypad")
+	}
+	test.Type(u.primary, strconv.Itoa(u.practice.current().product()))
+	test.Tap(u.primary)
+	assertPosition()
+	if u.primary.Text != "See results" || u.back.Text != "New Session" {
+		t.Fatal("unexpected final feedback actions")
 	}
 }
 

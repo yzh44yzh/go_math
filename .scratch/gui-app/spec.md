@@ -2,6 +2,22 @@
 
 Status: approved
 
+## Readability and Stable Actions Revision
+
+Approved on 2026-10-13 for all screens, confirmation dialogs, desktop, and Android:
+
+- Body and button fonts: 20 logical units; question: 36; buttons: minimum height 56.
+- Preserve these sizes on small screens and allow vertical scrolling.
+- Keep the keypad visible but disabled during feedback. Reserve a message slot
+  for empty-answer validation and correct/incorrect feedback, so Check answer,
+  Next, and See results have the same position and size.
+- Use orange progress fill distinct from the primary button color, supporting
+  light and dark themes.
+- Use exact wording New Session for header navigation, discard confirmation,
+  and results. Keep discard confirmation and preserve selected settings.
+
+This revision supersedes earlier feedback layout and navigation wording.
+
 ## Answer Control Revision
 
 On 2026-10-12 the user approved replacing the answer text input with digit buttons

@@ -33,16 +33,21 @@ libraries; it is not a fully static or universally portable Linux binary.
    **Check answer**. The display accepts up to two digits; entering another digit
    after an initial zero replaces that zero. **Clear** removes the answer and
    **⌫** removes its last digit. An empty answer leaves the question active.
-4. Read the feedback and press **Enter** or **Next** to continue.
+4. Read the feedback and press **Enter** or **Next** to continue. The keypad stays
+   visible but disabled; **Check answer**, **Next**, and **See results** share one position.
 5. Review round totals. **Retry mistakes** reshuffles only mistakes from the
-   preceding round. **New session** returns to settings and retains their values.
+   preceding round. **New Session** returns to settings and retains their values.
+
+All screens use larger text and buttons: body and button text is 20 logical units,
+the question is 36, and buttons are at least 56 high. Progress uses orange separately
+from the primary button color. Smaller windows and Android landscape allow scrolling.
 
 Use **Tab** to move between controls and arrow keys to adjust sliders by 1.
 On settings, **Enter** starts only when **Start practice** is focused.
 During answer entry, hardware digit keys also work; **Backspace** removes the last
 digit and **Delete** clears the answer. **Enter** submits from the keypad or Check
 answer button; use **Space** to activate a focused digit or editing button.
-**Back to settings** asks before discarding
+**New Session** asks before discarding
 an unfinished round; closing the window exits. Settings and results live only in
 memory. The GUI replaces the previous terminal interface and command-line flags.
 

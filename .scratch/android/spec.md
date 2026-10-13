@@ -61,6 +61,11 @@ Settled in a grilling session on 2026-10-12:
 
 ## Known limitations
 
+The 2026-10-13 UI revision applies the shared larger fonts and buttons, stable
+action position, disabled feedback keypad, orange progress, and New Session wording
+to Android too. Landscape continues to scroll; focus suppression is unchanged.
+The device verification above predates this revision.
+
 - The packaged manifest carries fyne's defaults: `minSdkVersion 15`,
   `targetSdkVersion 29`. The CLI exposes no flag for either; the intended
   floor of 23 was not enforceable and is moot for the target device.
