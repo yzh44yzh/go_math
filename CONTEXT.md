@@ -8,10 +8,10 @@ Practice consists of answering multiplication questions and optionally repeating
 A multiplication problem consisting of two factors and their expected product.
 
 **Practice session**:
-A set of questions selected for practice using the chosen factor range and question count.
+A sequence of questions selected for practice using the chosen factor range and question count. The same multiplication problem may occur more than once.
 
 **Mistake**:
-A question answered incorrectly during practice.
+An occurrence of a question answered incorrectly during practice. Repeated questions can produce separate mistakes.
 
 **Retry round**:
-A subsequent pass through the mistakes from the preceding pass.
+A subsequent pass through every mistake occurrence from the preceding pass.

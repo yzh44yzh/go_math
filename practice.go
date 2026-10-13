@@ -59,8 +59,13 @@ func newPractice(s settings, rng *rand.Rand) (*practice, error) {
 			pairs = append(pairs, question{x, y})
 		}
 	}
-	rng.Shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
-	return &practice{pairs: pairs[:min(s.count, len(pairs))], rng: rng}, nil
+	selected := make([]question, 0, s.count)
+	for len(selected) < s.count {
+		rng.Shuffle(len(pairs), func(i, j int) { pairs[i], pairs[j] = pairs[j], pairs[i] })
+		remaining := s.count - len(selected)
+		selected = append(selected, pairs[:min(remaining, len(pairs))]...)
+	}
+	return &practice{pairs: selected, rng: rng}, nil
 }
 
 func (p *practice) current() question { return p.pairs[p.index] }

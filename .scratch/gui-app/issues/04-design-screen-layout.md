@@ -36,7 +36,8 @@ The user selected **Focus** without additional changes.
 
 - Use one resizable window, a small Go Math header, and a centered content column.
 - Settings show vertically stacked Minimum factor, Maximum factor, and Questions
-  inputs, followed by range guidance, any question-count cap, and Start practice.
+  inputs, followed by range guidance and Start practice. The 2026-10-13 revision
+  removes the question-count cap notice.
 - Practice shows the current question count and progress, a large centered
   multiplication question, then answer entry and Check answer.
 - Focus the answer field on each question. Enter checks the answer.

@@ -35,18 +35,19 @@ factor/count bounds adjusted as follows.
 - Question count must be a whole number from **1 through 100**, default **20**.
 - Default factor range remains **1 through 9**.
 - Generate all distinct ordered pairs in the selected inclusive range, shuffle
-  them, and select up to the requested question count without replacement.
+  them, and use each once per batch. Shuffle another batch as needed to fill
+  exactly the requested question count; repeats at batch boundaries are allowed.
 - **3 × 4** and **4 × 3** are separate questions.
-- Cap the actual count at the available ordered pairs and explain the cap in the UI.
-  Available count is `(maximum - minimum + 1)²`; the full 1–9 range has 81 questions.
-  For example, requesting 100 questions from 1–9 starts a session of 81 questions.
+- Available pairs number `(maximum - minimum + 1)²`; the full 1–9 range has 81.
+  Requesting 100 questions from 1–9 starts a session of 100 questions, using a
+  complete batch of 81 and 19 questions from the next batch. No cap notice is shown.
 
 ### Progress, results, and retries
 
 - Show progress such as **Question 3 of 20**, using the current round's actual count.
 - Results show correct and incorrect counts for the completed round.
 - Offer **Retry mistakes** only when the completed round has mistakes.
-- Each retry round contains only mistakes from the immediately preceding round,
+- Each retry round contains every missed occurrence from the immediately preceding round,
   shuffled into a random order. Shuffle anew for every retry round; a shuffle
   may coincidentally reproduce the previous order.
 - Allow further retry rounds until all questions are answered correctly or the
@@ -61,3 +62,9 @@ factor/count bounds adjusted as follows.
 
 Concrete layout, focus, and the visual presentation of validation messages belong
 to **Review the GUI screen layout**; these rules define behavior for that prototype.
+
+## Comments
+
+2026-10-13: The user confirmed exact configured initial counts, shuffled batches
+with repeats, and retrying every missed occurrence. Updated the selection rules
+above to supersede the original count cap.

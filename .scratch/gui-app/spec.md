@@ -2,6 +2,17 @@
 
 Status: approved
 
+## Exact Question Count Revision
+
+Approved on 2026-10-13: the initial round must contain exactly the configured
+count (1–100). Shuffle all available ordered pairs, use each once, and start
+another shuffled batch as needed. Repeats are allowed, including at batch
+boundaries. Remove the count-cap notice from settings. Retry rounds contain
+every missed occurrence from the immediately preceding round; their count is
+the mistake count rather than the configured initial count.
+
+This revision supersedes earlier selection-without-replacement and count capping.
+
 ## Readability and Stable Actions Revision
 
 Approved on 2026-10-13 for all screens, confirmation dialogs, desktop, and Android:
@@ -39,7 +50,7 @@ in earlier decisions.
 
 The user approved replacing the three settings inputs with integer sliders on
 2026-10-12. Each slider displays its current value in its label. Factors remain
-1–9 and question count 1–100, with existing defaults and count capping.
+1–9 and question count 1–100, with existing defaults.
 Raising minimum past maximum raises maximum; lowering maximum past minimum
 lowers minimum. Arrow keys adjust by 1, Tab traverses the three sliders and Start
 practice, and Enter starts only when Start practice is focused. Model validation
@@ -77,11 +88,11 @@ From results, retry mistakes starts another round; New session returns to settin
 | Area | Required behavior |
 | --- | --- |
 | Settings | Integer sliders for minimum and maximum factors from 1–9, automatically keeping minimum ≤ maximum; question count 1–100, default 20; default factor range 1–9. |
-| Selection | Shuffle distinct ordered pairs, then select without replacement. Cap count at `(maximum - minimum + 1)²` and explain the cap. `3 × 4` and `4 × 3` are separate questions. |
+| Selection | Honor the exact configured count using shuffled batches of all ordered pairs. Use every pair once per batch before repeating. Repeats at batch boundaries are allowed. `3 × 4` and `4 × 3` are separate questions. |
 | Submission | Buttons/keyboard compose up to two digits in a read-only display. Enter or Check answer submits; an empty answer shows Enter a whole number without recording a mistake or advancing. |
 | Feedback | Correct, or the correct multiplication result. Wait for Next/Enter; the final feedback advances to results. |
 | Results | Correct and incorrect counts for the completed round; offer Retry mistakes only when mistakes remain. |
-| Retry | Only mistakes from the immediately preceding round, reshuffled for every round. A random shuffle may reproduce the previous order. |
+| Retry | Every missed occurrence from the immediately preceding round, including repeated questions, reshuffled for every round. A random shuffle may reproduce the previous order. |
 | Navigation | Back to settings confirms discarding progress; cancellation preserves it. New session retains settings. Closing exits. |
 
 ## UI and Focus
@@ -132,7 +143,7 @@ session. Supply a seeded random source for tests; normal sessions use randomness
 ## Validation and Completion
 
 Use Go's standard testing package. Table-driven tests should cover valid/invalid
-settings, inclusive range boundaries, ordered-pair uniqueness, count capping, input
+settings, inclusive range boundaries, ordered-pair uniqueness within each batch, exact counts, input
 handling, correct/incorrect answers, manual advancement, round totals, and repeated
 mistake-only retries. Verify selection/permutation invariants rather than assuming
 every random shuffle changes the order.
@@ -144,7 +155,7 @@ Headless checks do not replace graphical platform verification.
 
 Run formatting, `go vet ./...`, `go test ./...`, and a native GUI build with the
 chosen dependency/toolchain setup. Manually verify keyboard focus, Enter/Tab,
-validation/cap messages, correct/incorrect feedback, repeated retries, navigation
+validation messages, exact question counts, correct/incorrect feedback, repeated retries, navigation
 confirmation, retained settings, resizing, and closing on Ubuntu/KDE through
 XWayland. Screen-reader certification is deferred.
 

@@ -39,7 +39,7 @@ distribution in [packaging](https://docs.fyne.io/started/packaging/).
 ### Acceptance checks
 
 - Invalid settings are rejected; valid settings start practice with the correct
-  factor range, requested count, and any explained cap on available pairs.
+  factor range and exact requested count, using repeated shuffled batches as needed.
 - Correct and incorrect answers produce the approved feedback. Blank/non-integer
   input keeps the question active without recording a mistake.
 - Feedback advances only on Next or Enter, including the transition to results.

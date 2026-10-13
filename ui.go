@@ -114,7 +114,7 @@ type practiceUI struct {
 	digits                         [10]*actionButton
 	clear, erase                   *actionButton
 	fromLabel, toLabel, countLabel *widget.Label
-	errorLabel, capLabel           *widget.Label
+	errorLabel                     *widget.Label
 	primary, back                  *actionButton
 	confirmation                   *dialog.CustomDialog
 	discard                        *actionButton
@@ -193,12 +193,10 @@ func (u *practiceUI) showSettings() {
 	u.errorLabel = wrappedLabel("")
 	u.errorLabel.Importance = widget.DangerImportance
 	u.errorLabel.Hide()
-	u.capLabel = wrappedLabel("")
 	u.primary = newActionButton("Start practice", u.start)
 	u.primary.Importance = widget.HighImportance
 	fields := container.NewVBox(u.fromLabel, u.from, u.toLabel, u.to, u.countLabel, u.count)
-	u.updateCap()
-	u.setScreen(container.NewVBox(widget.NewLabelWithStyle("Choose your practice", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), fields, wrappedLabel("Factors 1–9 · Questions 1–100"), u.capLabel, u.errorLabel, u.primary), u.from)
+	u.setScreen(container.NewVBox(widget.NewLabelWithStyle("Choose your practice", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), fields, wrappedLabel("Factors 1–9 · Questions 1–100"), u.errorLabel, u.primary), u.from)
 }
 
 func (u *practiceUI) selectedSettings() settings {
@@ -209,28 +207,6 @@ func (u *practiceUI) updateSettings() {
 	u.fromLabel.SetText(fmt.Sprintf("Minimum factor: %d", int(u.from.Value)))
 	u.toLabel.SetText(fmt.Sprintf("Maximum factor: %d", int(u.to.Value)))
 	u.countLabel.SetText(fmt.Sprintf("Questions: %d", int(u.count.Value)))
-	u.updateCap()
-}
-
-func (u *practiceUI) updateCap() {
-	if u.capLabel == nil {
-		return
-	}
-	s := u.selectedSettings()
-	text := ""
-	if s.count > s.available() {
-		if s.available() == 1 {
-			text = "Only 1 pair available. This session will use 1 question."
-		} else {
-			text = fmt.Sprintf("Only %d pairs available. This session will use %d questions.", s.available(), s.available())
-		}
-	}
-	u.capLabel.SetText(text)
-	if text == "" {
-		u.capLabel.Hide()
-	} else {
-		u.capLabel.Show()
-	}
 }
 
 func (u *practiceUI) start() {
@@ -285,9 +261,10 @@ func (u *practiceUI) showPractice() {
 			feedback = fmt.Sprintf("Correct answer: %d × %d = %d", q.x, q.y, q.product())
 		}
 		u.answer.SetText(fmt.Sprintf("Your answer: %d", p.answer))
+		u.errorLabel.Alignment = fyne.TextAlignCenter
 		u.errorLabel.SetText(feedback)
 		if p.answer == q.product() {
-			u.errorLabel.Importance = widget.SuccessImportance
+			u.errorLabel.Importance = widget.HighImportance
 		}
 		for _, digit := range u.digits {
 			digit.Disable()

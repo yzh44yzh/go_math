@@ -26,9 +26,10 @@ libraries; it is not a fully static or universally portable Linux binary.
    Defaults are **1–9** and **20** questions.
    Labels show the selected values. Moving minimum above maximum raises maximum;
    lowering maximum below minimum lowers minimum, keeping the range valid.
-2. Start practice. Questions are shuffled without duplicates; `3 × 4` and `4 × 3`
-   are separate questions. If the requested count exceeds the available pairs,
-   the app explains the cap (at most 81 questions for the full range).
+2. Start practice with exactly the selected number of questions. Each batch
+   shuffles all available ordered pairs and uses each once before starting the
+   next batch. Repeats are allowed, including at batch boundaries; `3 × 4` and
+   `4 × 3` are separate questions.
 3. Build the answer using digit buttons **0–9**, then press **Enter** or
    **Check answer**. The display accepts up to two digits; entering another digit
    after an initial zero replaces that zero. **Clear** removes the answer and
@@ -36,7 +37,9 @@ libraries; it is not a fully static or universally portable Linux binary.
 4. Read the feedback and press **Enter** or **Next** to continue. The keypad stays
    visible but disabled; **Check answer**, **Next**, and **See results** share one position.
 5. Review round totals. **Retry mistakes** reshuffles only mistakes from the
-   preceding round. **New Session** returns to settings and retains their values.
+   preceding round, including every missed occurrence of repeated questions.
+   Retry counts depend on mistakes, rather than the settings count.
+   **New Session** returns to settings and retains their values.
 
 All screens use larger text and buttons: body and button text is 20 logical units,
 the question is 36, and buttons are at least 56 high. Progress uses orange separately
@@ -88,7 +91,7 @@ sources and cover state transitions, validation, pair selection, retries, and UI
 interaction. No coverage threshold is configured.
 
 For graphical verification, launch on the supported desktop and check Enter/Tab
-focus, slider bounds, keypad/keyboard editing, empty answers, cap messages, feedback, repeated retries,
+focus, slider bounds, keypad/keyboard editing, empty answers, exact question counts, feedback, repeated retries,
 discard confirmation, retained settings, resizing, and closing. Headless tests
 cannot certify native focus, graphics, or screen-reader behavior.
 

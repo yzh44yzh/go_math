@@ -3,7 +3,6 @@ package main
 import (
 	"math/rand"
 	"strconv"
-	"strings"
 	"testing"
 
 	"fyne.io/fyne/v2"
@@ -25,11 +24,8 @@ func TestUIPracticeAndRetry(t *testing.T) {
 	u.from.SetValue(2)
 	u.to.SetValue(2)
 	u.count.SetValue(20)
-	if !strings.Contains(u.capLabel.Text, "1 question.") {
-		t.Fatalf("missing cap: %q", u.capLabel.Text)
-	}
 	test.Tap(u.primary)
-	if u.practice == nil || len(u.practice.pairs) != 1 || u.window.Canvas().Focused() != u.primary {
+	if u.practice == nil || len(u.practice.pairs) != 20 || u.window.Canvas().Focused() != u.primary {
 		t.Fatal("practice did not start focused on answer")
 	}
 	test.Tap(u.primary)
@@ -42,11 +38,19 @@ func TestUIPracticeAndRetry(t *testing.T) {
 		t.Fatal("answer did not show focused feedback")
 	}
 	u.primary.TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
+	for index := 1; index < 20; index++ {
+		if u.practice.state != questionPhase || u.practice.index != index {
+			t.Fatal("practice ended before the configured question count")
+		}
+		test.Type(u.primary, "4")
+		test.Tap(u.primary)
+		test.Tap(u.primary)
+	}
 	if u.practice.state != resultsPhase || u.primary.Text != "Retry mistakes" {
 		t.Fatal("final feedback did not reach results")
 	}
 	test.Tap(u.primary)
-	if u.practice.round != 1 || u.practice.state != questionPhase {
+	if u.practice.round != 1 || u.practice.state != questionPhase || len(u.practice.pairs) != 1 {
 		t.Fatal("retry action failed")
 	}
 	test.Type(u.primary, "4")
@@ -114,10 +118,10 @@ func TestUISettingsAndDiscard(t *testing.T) {
 	u.from.SetValue(1)
 	u.to.SetValue(9)
 	u.count.SetValue(100)
-	if !strings.Contains(u.capLabel.Text, "81") {
-		t.Fatal("full range cap not explained")
-	}
 	test.Tap(u.primary)
+	if len(u.practice.pairs) != 100 {
+		t.Fatal("practice did not honor the 100-question setting")
+	}
 	test.Type(u.primary, "12")
 	before := u.practice
 	test.Tap(u.back)

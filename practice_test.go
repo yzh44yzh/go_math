@@ -29,23 +29,23 @@ func TestSettingsValidation(t *testing.T) {
 }
 
 func TestQuestionSelection(t *testing.T) {
-	for _, s := range []settings{{1, 9, 100}, {3, 4, 100}, {9, 9, 20}, {1, 9, 20}} {
+	for _, s := range []settings{{1, 9, 100}, {3, 4, 100}, {3, 4, 9}, {9, 9, 20}, {1, 9, 20}, {1, 9, 81}, {3, 4, 1}} {
 		p, err := newPractice(s, rand.New(rand.NewSource(1)))
 		if err != nil {
 			t.Fatal(err)
 		}
-		if len(p.pairs) != min(s.count, s.available()) {
+		if len(p.pairs) != s.count {
 			t.Fatalf("wrong count for %+v: %d", s, len(p.pairs))
 		}
 		seen := map[question]bool{}
-		for _, q := range p.pairs {
+		for index, q := range p.pairs {
+			if index%s.available() == 0 {
+				seen = map[question]bool{}
+			}
 			if q.x < s.from || q.x > s.to || q.y < s.from || q.y > s.to || seen[q] {
-				t.Fatalf("out-of-range or duplicate pair: %+v", q)
+				t.Fatalf("out-of-range or repeated pair within batch at %d: %+v", index, q)
 			}
 			seen[q] = true
-		}
-		if s.from == 3 && s.to == 4 && (!seen[question{3, 4}] || !seen[question{4, 3}]) {
-			t.Fatal("swapped factors must be separate questions")
 		}
 		other, _ := newPractice(s, rand.New(rand.NewSource(1)))
 		if !reflect.DeepEqual(p.pairs, other.pairs) {
@@ -54,6 +54,25 @@ func TestQuestionSelection(t *testing.T) {
 	}
 	if _, err := newPractice(settings{9, 1, 20}, rand.New(rand.NewSource(1))); err == nil {
 		t.Fatal("invalid settings accepted")
+	}
+}
+
+func TestRetryPreservesRepeatedMistakes(t *testing.T) {
+	p, err := newPractice(settings{2, 2, 3}, rand.New(rand.NewSource(1)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, answer := range []string{"0", "4", "0"} {
+		if err := p.submit(answer); err != nil {
+			t.Fatal(err)
+		}
+		p.next()
+	}
+	if p.correct != 1 || len(p.mistakes) != 2 || !p.retry() {
+		t.Fatal("repeated wrong answers did not produce a retry round")
+	}
+	if len(p.pairs) != 2 || p.pairs[0] != (question{2, 2}) || p.pairs[1] != (question{2, 2}) {
+		t.Fatalf("retry lost repeated mistake occurrences: %v", p.pairs)
 	}
 }
 
