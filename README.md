@@ -22,7 +22,7 @@ libraries; it is not a fully static or universally portable Linux binary.
 
 ## Practice
 
-1. Use the sliders to choose minimum and maximum factors from **1–9** and **1–100** questions.
+1. Use the sliders to choose minimum and maximum factors from **1–12** and **1–50** questions.
    Defaults are **1–9** and **20** questions.
    Labels show the selected values. Moving minimum above maximum raises maximum;
    lowering maximum below minimum lowers minimum, keeping the range valid.
@@ -31,10 +31,11 @@ libraries; it is not a fully static or universally portable Linux binary.
    next batch. Repeats are allowed, including at batch boundaries; `3 × 4` and
    `4 × 3` are separate questions.
 3. Build the answer using digit buttons **0–9**, then press **Enter** or
-   **Check answer**. The display accepts up to two digits; entering another digit
+   **Check answer**. The display accepts up to three digits; entering another digit
    after an initial zero replaces that zero. **Clear** removes the answer and
    **⌫** removes its last digit. An empty answer leaves the question active.
-4. Read the feedback and press **Enter** or **Next** to continue. The keypad stays
+4. Read the feedback directly below **Your answer** and press **Enter** or **Next**
+   to continue. The keypad stays
    visible but disabled; **Check answer**, **Next**, and **See results** share one position.
 5. Review round totals. **Retry mistakes** reshuffles only mistakes from the
    preceding round, including every missed occurrence of repeated questions.

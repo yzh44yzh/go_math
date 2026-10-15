@@ -117,10 +117,10 @@ func TestUISettingsAndDiscard(t *testing.T) {
 	}
 	u.from.SetValue(1)
 	u.to.SetValue(9)
-	u.count.SetValue(100)
+	u.count.SetValue(50)
 	test.Tap(u.primary)
-	if len(u.practice.pairs) != 100 {
-		t.Fatal("practice did not honor the 100-question setting")
+	if len(u.practice.pairs) != 50 {
+		t.Fatal("practice did not honor the 50-question setting")
 	}
 	test.Type(u.primary, "12")
 	before := u.practice
@@ -134,7 +134,7 @@ func TestUISettingsAndDiscard(t *testing.T) {
 	}
 	test.Tap(u.back)
 	u.discard.TypedKey(&fyne.KeyEvent{Name: fyne.KeyReturn})
-	if u.practice != nil || u.count.Value != 100 {
+	if u.practice != nil || u.count.Value != 50 {
 		t.Fatal("confirmed navigation did not retain settings")
 	}
 }
@@ -161,8 +161,8 @@ func TestSettingsSlidersAndKeyboard(t *testing.T) {
 	if u.count.Value != 28 || u.countLabel.Text != "Questions: 28" {
 		t.Fatal("question slider did not round to whole numbers and update its label")
 	}
-	u.count.SetValue(101)
-	if u.count.Value != 100 {
+	u.count.SetValue(51)
+	if u.count.Value != 50 {
 		t.Fatal("question slider exceeded its upper bound")
 	}
 	u.count.SetValue(0)
@@ -250,11 +250,12 @@ func TestAnswerKeypadEditing(t *testing.T) {
 	test.Tap(u.digits[5])
 	test.Tap(u.digits[6])
 	test.Tap(u.digits[7])
-	if u.answerText != "56" || u.answer.Text != "Your answer: 56" || u.practice.state != questionPhase {
+	test.Tap(u.digits[8])
+	if u.answerText != "567" || u.answer.Text != "Your answer: 567" || u.practice.state != questionPhase {
 		t.Fatal("keypad did not replace the initial zero, limit length, or wait for submission")
 	}
 	test.Tap(u.erase)
-	if u.answerText != "5" {
+	if u.answerText != "56" {
 		t.Fatal("backspace did not remove the final digit")
 	}
 	test.Tap(u.clear)
@@ -272,12 +273,12 @@ func TestAnswerKeyboardRouting(t *testing.T) {
 	u.count.SetValue(2)
 	test.Tap(u.primary)
 	test.Tap(u.digits[1])
-	test.Type(u.digits[1], "2x-3")
-	if u.answerText != "12" {
+	test.Type(u.digits[1], "2x-34")
+	if u.answerText != "123" {
 		t.Fatal("focused keypad button did not route digits, ignore non-digits, or limit length")
 	}
 	u.digits[1].TypedKey(&fyne.KeyEvent{Name: fyne.KeyBackspace})
-	if u.answerText != "1" {
+	if u.answerText != "12" {
 		t.Fatal("keyboard Backspace failed")
 	}
 	u.digits[1].TypedKey(&fyne.KeyEvent{Name: fyne.KeyDelete})
@@ -319,5 +320,22 @@ func TestFocusLayoutFitsNarrowWindow(t *testing.T) {
 		if content.Position().X < 0 || content.Position().X+content.Size().Width > width {
 			t.Fatal("column extends beyond window")
 		}
+	}
+}
+
+func TestUITwelveTimesTwelve(t *testing.T) {
+	u := setupUI(t)
+	u.from.SetValue(13)
+	if u.from.Value != 12 || u.to.Value != 12 {
+		t.Fatal("factor sliders must allow 12 and clamp larger values")
+	}
+	u.count.SetValue(1)
+	test.Tap(u.primary)
+	for _, digit := range []int{1, 4, 4} {
+		test.Tap(u.digits[digit])
+	}
+	test.Tap(u.primary)
+	if u.practice.current() != (question{12, 12}) || u.practice.answer != 144 || u.practice.correct != 1 {
+		t.Fatal("12 × 12 could not be answered correctly using the keypad")
 	}
 }

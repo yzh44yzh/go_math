@@ -125,7 +125,7 @@ func newPracticeUI(window fyne.Window, rng *rand.Rand) *practiceUI {
 	u := &practiceUI{window: window, rng: rng}
 	window.Canvas().SetOnTypedRune(u.appendDigit)
 	window.Canvas().SetOnTypedKey(func(event *fyne.KeyEvent) { u.answerKey(event) })
-	u.from, u.to, u.count = widget.NewSlider(1, 9), widget.NewSlider(1, 9), widget.NewSlider(1, 100)
+	u.from, u.to, u.count = widget.NewSlider(1, 12), widget.NewSlider(1, 12), widget.NewSlider(1, 50)
 	u.fromLabel, u.toLabel, u.countLabel = wrappedLabel(""), wrappedLabel(""), wrappedLabel("")
 	u.from.SetValue(float64(defaultSettings.from))
 	u.to.SetValue(float64(defaultSettings.to))
@@ -196,7 +196,7 @@ func (u *practiceUI) showSettings() {
 	u.primary = newActionButton("Start practice", u.start)
 	u.primary.Importance = widget.HighImportance
 	fields := container.NewVBox(u.fromLabel, u.from, u.toLabel, u.to, u.countLabel, u.count)
-	u.setScreen(container.NewVBox(widget.NewLabelWithStyle("Choose your practice", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), fields, wrappedLabel("Factors 1–9 · Questions 1–100"), u.errorLabel, u.primary), u.from)
+	u.setScreen(container.NewVBox(widget.NewLabelWithStyle("Choose your practice", fyne.TextAlignLeading, fyne.TextStyle{Bold: true}), fields, wrappedLabel("Factors 1–12 · Questions 1–50"), u.errorLabel, u.primary), u.from)
 }
 
 func (u *practiceUI) selectedSettings() settings {
@@ -247,8 +247,8 @@ func (u *practiceUI) showPractice() {
 	u.errorLabel = wrappedLabel("")
 	u.errorLabel.Importance = widget.DangerImportance
 	body.Add(u.answer)
-	body.Add(u.answerKeypad())
 	body.Add(container.New(messageSlotLayout{}, u.errorLabel))
+	body.Add(u.answerKeypad())
 	var focus fyne.Focusable
 	if p.state == questionPhase {
 		u.answerText = ""
@@ -323,7 +323,7 @@ func (u *practiceUI) appendDigit(char rune) {
 	}
 	if u.answerText == "0" {
 		u.answerText = string(char)
-	} else if len(u.answerText) < 2 {
+	} else if len(u.answerText) < 3 {
 		u.answerText += string(char)
 	}
 	u.updateAnswer()
