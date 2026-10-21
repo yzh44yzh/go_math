@@ -7,6 +7,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/test"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 )
 
@@ -62,6 +63,34 @@ func TestUIPracticeAndRetry(t *testing.T) {
 	test.Tap(u.primary)
 	if u.practice != nil || u.from.Value != 2 || u.count.Value != 20 {
 		t.Fatal("new session did not retain settings")
+	}
+}
+
+func TestFeedbackRenderedColor(t *testing.T) {
+	for _, c := range []struct {
+		name, answer string
+		color        fyne.ThemeColorName
+	}{
+		{"correct", "4", theme.ColorNamePrimary},
+		{"incorrect", "3", theme.ColorNameError},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			u := setupUI(t)
+			u.from.SetValue(2)
+			u.to.SetValue(2)
+			u.count.SetValue(1)
+			test.Tap(u.primary)
+			for _, digit := range c.answer {
+				test.Tap(u.digits[int(digit-'0')])
+			}
+			test.Tap(u.primary)
+			// Inspect the rendered text without refreshing away a stale style.
+			text := test.WidgetRenderer(u.errorLabel).Objects()[0].(*widget.RichText)
+			style := text.Segments[0].(*widget.TextSegment).Style
+			if style.ColorName != c.color {
+				t.Fatalf("feedback color = %q, want %q", style.ColorName, c.color)
+			}
+		})
 	}
 }
 
@@ -323,19 +352,19 @@ func TestFocusLayoutFitsNarrowWindow(t *testing.T) {
 	}
 }
 
-func TestUITwelveTimesTwelve(t *testing.T) {
+func TestUITwentyTimesTwenty(t *testing.T) {
 	u := setupUI(t)
-	u.from.SetValue(13)
-	if u.from.Value != 12 || u.to.Value != 12 {
-		t.Fatal("factor sliders must allow 12 and clamp larger values")
+	u.from.SetValue(21)
+	if u.from.Value != 20 || u.to.Value != 20 {
+		t.Fatal("factor sliders must allow 20 and clamp larger values")
 	}
 	u.count.SetValue(1)
 	test.Tap(u.primary)
-	for _, digit := range []int{1, 4, 4} {
+	for _, digit := range []int{4, 0, 0} {
 		test.Tap(u.digits[digit])
 	}
 	test.Tap(u.primary)
-	if u.practice.current() != (question{12, 12}) || u.practice.answer != 144 || u.practice.correct != 1 {
-		t.Fatal("12 × 12 could not be answered correctly using the keypad")
+	if u.practice.current() != (question{20, 20}) || u.practice.answer != 400 || u.practice.correct != 1 {
+		t.Fatal("20 × 20 could not be answered correctly using the keypad")
 	}
 }

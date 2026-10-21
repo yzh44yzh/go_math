@@ -12,8 +12,8 @@ type settings struct{ from, to, count int }
 var defaultSettings = settings{from: 1, to: 9, count: 20}
 
 func (s settings) validate() error {
-	if s.from < 1 || s.from > 12 || s.to < 1 || s.to > 12 {
-		return errors.New("Factors must be whole numbers from 1 to 12")
+	if s.from < 1 || s.from > 20 || s.to < 1 || s.to > 20 {
+		return errors.New("Factors must be whole numbers from 1 to 20")
 	}
 	if s.from > s.to {
 		return errors.New("Minimum factor must not exceed maximum factor")

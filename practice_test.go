@@ -13,9 +13,9 @@ func TestSettingsValidation(t *testing.T) {
 		settings settings
 		valid    bool
 	}{
-		{"defaults", defaultSettings, true}, {"maximum factors", settings{12, 12, 50}, true},
-		{"high minimum", settings{13, 13, 20}, false}, {"one factor", settings{5, 5, 50}, true},
-		{"zero factor", settings{0, 9, 20}, false}, {"high factor", settings{1, 13, 20}, false},
+		{"defaults", defaultSettings, true}, {"maximum factors", settings{20, 20, 50}, true},
+		{"high minimum", settings{21, 21, 20}, false}, {"one factor", settings{5, 5, 50}, true},
+		{"zero factor", settings{0, 9, 20}, false}, {"high factor", settings{1, 21, 20}, false},
 		{"reversed", settings{9, 1, 20}, false}, {"negative", settings{-1, 9, 20}, false},
 		{"zero count", settings{1, 9, 0}, false}, {"high count", settings{1, 9, 51}, false},
 	}
@@ -30,7 +30,7 @@ func TestSettingsValidation(t *testing.T) {
 }
 
 func TestQuestionSelection(t *testing.T) {
-	for _, s := range []settings{{1, 12, 50}, {12, 12, 1}, {3, 4, 50}, {3, 4, 9}, {9, 9, 20}, {1, 9, 20}, {1, 7, 49}, {3, 4, 1}} {
+	for _, s := range []settings{{1, 20, 50}, {20, 20, 1}, {3, 4, 50}, {3, 4, 9}, {9, 9, 20}, {1, 9, 20}, {1, 7, 49}, {3, 4, 1}} {
 		p, err := newPractice(s, rand.New(rand.NewSource(1)))
 		if err != nil {
 			t.Fatal(err)

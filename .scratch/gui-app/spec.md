@@ -10,9 +10,9 @@ as well, keeping the keypad and primary action stationary between states.
 
 ## Settings Limits Revision
 
-Requested on 2026-10-15: both factor sliders allow 1–12 and Questions allows
+Updated on 2026-10-21: both factor sliders allow 1–20 and Questions allows
 1–50. Defaults remain factors 1–9 and 20 questions. Answer entry accepts three
-digits so products through 12 × 12 = 144 can be entered. This revision supersedes
+digits so products through 20 × 20 = 400 can be entered. This revision supersedes
 the earlier factor/count bounds and two-digit answer limit in linked decisions.
 
 ## Exact Question Count Revision
@@ -63,7 +63,7 @@ in earlier decisions.
 
 The user approved replacing the three settings inputs with integer sliders on
 2026-10-12. Each slider displays its current value in its label. Factors remain
-1–12 and question count 1–50, with existing defaults.
+1–20 and question count 1–50, with existing defaults.
 Raising minimum past maximum raises maximum; lowering maximum past minimum
 lowers minimum. Arrow keys adjust by 1, Tab traverses the three sliders and Start
 practice, and Enter starts only when Start practice is focused. Model validation
@@ -100,7 +100,7 @@ From results, retry mistakes starts another round; New session returns to settin
 
 | Area | Required behavior |
 | --- | --- |
-| Settings | Integer sliders for minimum and maximum factors from 1–12, automatically keeping minimum ≤ maximum; question count 1–50, default 20; default factor range 1–9. |
+| Settings | Integer sliders for minimum and maximum factors from 1–20, automatically keeping minimum ≤ maximum; question count 1–50, default 20; default factor range 1–9. |
 | Selection | Honor the exact configured count using shuffled batches of all ordered pairs. Use every pair once per batch before repeating. Repeats at batch boundaries are allowed. `3 × 4` and `4 × 3` are separate questions. |
 | Submission | Buttons/keyboard compose up to three digits in a read-only display. Enter or Check answer submits; an empty answer shows Enter a whole number without recording a mistake or advancing. |
 | Feedback | Correct, or the correct multiplication result. Wait for Next/Enter; the final feedback advances to results. |

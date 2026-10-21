@@ -22,7 +22,7 @@ libraries; it is not a fully static or universally portable Linux binary.
 
 ## Practice
 
-1. Use the sliders to choose minimum and maximum factors from **1–12** and **1–50** questions.
+1. Use the sliders to choose minimum and maximum factors from **1–20** and **1–50** questions.
    Defaults are **1–9** and **20** questions.
    Labels show the selected values. Moving minimum above maximum raises maximum;
    lowering maximum below minimum lowers minimum, keeping the range valid.
