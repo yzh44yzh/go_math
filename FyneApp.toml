@@ -4,5 +4,5 @@ Website = "https://github.com/yzh44yzh/go_math"
   Icon = "Icon.png"
   Name = "Go Math"
   ID = "io.github.yzh44yzh.go_math"
-  Version = "1.1"
-  Build = 8
+  Version = "1.2"
+  Build = 10
